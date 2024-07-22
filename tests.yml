@@ -1,0 +1,16 @@
+---
+version: "0.0.1"
+system_tests:
+  # System Level
+  - test_1:
+    name: "harden_1"
+    reg_paths:
+      registry: "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+      name: "FilterAdministratorToken"
+      value: 1
+  - test_2:
+
+user_tests:
+  # Applies to all users
+  - test_1:
+    name: "harden_5"

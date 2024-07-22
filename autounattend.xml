@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
+	<!--https://schneegans.de/windows/unattend-generator/?LanguageMode=Unattended&UILanguage=en-US&Locale=en-US&Keyboard=00000409&GeoLocation=244&ProcessorArchitecture=amd64&ComputerNameMode=Custom&ComputerName=MG-TEST&TimeZoneMode=Implicit&PartitionMode=Unattended&PartitionLayout=GPT&EspSize=300&RecoveryMode=Partition&RecoverySize=1000&WindowsEditionMode=Interactive&UserAccountMode=Unattended&AccountName0=MG-ADMIN&AccountPassword0=password&AccountGroup0=Administrators&AccountName1=MG-GATEWAY&AccountPassword1=password&AccountGroup1=Users&AccountName2=&AccountName3=&AccountName4=&AutoLogonMode=Own&PasswordExpirationMode=Unlimited&LockoutMode=Default&EnableLongPaths=true&HardenSystemDriveAcl=true&AllowPowerShellScripts=true&NoAutoRebootWithLoggedOnUsers=true&DisableAppSuggestions=true&DisableWidgets=true&WifiMode=Skip&ExpressSettings=DisableAll&Remove3DViewer=true&RemoveBingSearch=true&RemoveCalculator=true&RemoveCamera=true&RemoveClipchamp=true&RemoveClock=true&RemoveCopilot=true&RemoveCortana=true&RemoveDevHome=true&RemoveFamily=true&RemoveFeedbackHub=true&RemoveGetHelp=true&RemoveInternetExplorer=true&RemoveMailCalendar=true&RemoveMaps=true&RemoveMathInputPanel=true&RemoveZuneVideo=true&RemoveNews=true&RemoveNotepadClassic=true&RemoveNotepad=true&RemoveOffice365=true&RemoveOneDrive=true&RemoveOneNote=true&RemoveOutlook=true&RemovePaint=true&RemovePaint3D=true&RemovePeople=true&RemovePhotos=true&RemovePowerAutomate=true&RemovePowerShellISE=true&RemoveQuickAssist=true&RemoveSkype=true&RemoveSnippingTool=true&RemoveSolitaire=true&RemoveStepsRecorder=true&RemoveStickyNotes=true&RemoveTeams=true&RemoveGetStarted=true&RemoveToDo=true&RemoveVoiceRecorder=true&RemoveWeather=true&RemoveWindowsMediaPlayer=true&RemoveZuneMusic=true&RemoveWindowsTerminal=true&RemoveWordPad=true&RemoveXboxApps=true&RemoveYourPhone=true&SystemScript0=%7B%7B.SystemTestsContent%7D%7D&SystemScriptType0=Ps1&DefaultUserScript2=Registry%3A%3AHKU%5CDefaultUser%5C%E2%80%A6%0D%0A%7B%7B.UsersTestsContents%7D%7D&DefaultUserScriptType2=Ps1&FirstLogonScript1=%7B%7B.TestsContent%7D%7D&FirstLogonScriptType1=Ps1&WdacMode=Skip-->
 	<settings pass="offlineServicing"></settings>
 	<settings pass="windowsPE">
 		<component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
@@ -294,6 +295,18 @@
 					<Order>51</Order>
 					<Path>cmd.exe /c "powershell.exe -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\unattend-01.ps1' -Raw | Invoke-Expression;" &gt;&gt;"C:\Windows\Setup\Scripts\unattend-01.log" 2&gt;&amp;1"</Path>
 				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>52</Order>
+					<Path>reg.exe load "HKU\DefaultUser" "C:\Users\Default\NTUSER.DAT"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>53</Order>
+					<Path>cmd.exe /c "powershell.exe -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\unattend-03.ps1' -Raw | Invoke-Expression;" &gt;&gt;"C:\Windows\Setup\Scripts\unattend-03.log" 2&gt;&amp;1"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>54</Order>
+					<Path>reg.exe unload "HKU\DefaultUser"</Path>
+				</RunSynchronousCommand>
 			</RunSynchronous>
 		</component>
 		<component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
@@ -349,6 +362,10 @@
 					<Order>1</Order>
 					<CommandLine>reg.exe add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoLogonCount /t REG_DWORD /d 0 /f</CommandLine>
 				</SynchronousCommand>
+				<SynchronousCommand wcm:action="add">
+					<Order>2</Order>
+					<CommandLine>cmd.exe /c "powershell.exe -NoProfile -Command "Get-Content -LiteralPath 'C:\Windows\Setup\Scripts\unattend-02.ps1' -Raw | Invoke-Expression;" &gt;&gt;"C:\Windows\Setup\Scripts\unattend-02.log" 2&gt;&amp;1"</CommandLine>
+				</SynchronousCommand>
 			</FirstLogonCommands>
 		</component>
 	</settings>
@@ -391,6 +408,7 @@ $selectors = @(
 	'microsoft.windowscommunicationsapps';
 	'Microsoft.WindowsMaps';
 	'Microsoft.BingNews';
+	'Microsoft.WindowsNotepad';
 	'Microsoft.MicrosoftOfficeHub';
 	'Microsoft.Office.OneNote';
 	'Microsoft.OutlookForWindows';
@@ -556,64 +574,14 @@ $logfile = 'C:\Windows\Temp\remove-features.log';
 </LayoutModificationTemplate>
 		]]></File>
 		<File path="C:\Windows\Setup\Scripts\unattend-01.ps1">
-$Tests = @(
-    @{
-        # Do not allow the system to shut down without logging in
-        # Risk: Process stop possible
-        # Weak point: Shutdown option freely accessible
-        # Solution: Shutdown only possible after user login
-        Name       = "harden_2";
-        Registries = @(
-            @{
-                Path             = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\";
-                Key              = "shutdownwithlogon";
-                ExpectedKeyValue = 0
-            }
-        )  
-    };
-    @{
-        # Detect application installation and request elevated rights with User Account Control (UAC) (ref. 4.2)
-        # Rischio: gli impiegati con diritti utente possono installare qualsiasi programma desiderino.
-        # Punto debole: l'installazione delle applicazioni è possibile anche da parte dell'utente.
-        # Soluzione: disattivazione della richiesta di password per i diritti di amministratore.
-        Name       = "harden_3"
-        Registries = @(
-            @{
-                Path             = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\";
-                Key              = "FilterAdministratorToken";
-                ExpectedKeyValue = 1
-            };
-            @{
-                Path             = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\";
-                Key              = "ConsentPromptBehaviorUser"
-                ExpectedKeyValue = 0
-            }
-        )  
-    };
-)
-
-
-foreach ($Test in $Tests) {
-    foreach ($Registry in $Test.Registries) {
-        $KeyExists = (Get-Item $Registry.Path).Propriety -contains $Registry.Key
-        if ($KeyExists) {
-            $CurrentKeyValue = Get-ItemProperty -Path $Registry.Path -Name $Registry.Key
-            if ($CurrentKeyValue -ne $Registry.ExpectedKeyValue) {
-                Write-Host "Current value not equal to the expected one, setting value to expected one." -ForegroundColor Yellow
-                Set-ItemProperty -Path $Registry.Path -Name $Registry.Key -Value $Registry.ExpectedKeyValue
-            }
-            else {
-                Write-Host "Current Value is correct" -ForegroundColor Green 
-            }
-        }
-        else {
-            Write-Host 'Empty Value, creating key' -ForegroundColor Yellow 
-            New-Item -Path $Registry.Path -Name $Registry.Key
-            Set-ItemProperty -Path $Registry.Path -Name $Registry.Key -Value $Registry.ExpectedKeyValue
-        } 
-    }
-}
-Write-Host "All keys fixed, resuming install"
+{{.SystemTestsContent}}
+		</File>
+		<File path="C:\Windows\Setup\Scripts\unattend-02.ps1">
+{{.TestsContent}}
+		</File>
+		<File path="C:\Windows\Setup\Scripts\unattend-03.ps1">
+Registry::HKU\DefaultUser\…
+{{.UsersTestsContents}}
 		</File>
 	</Extensions>
 </unattend>
