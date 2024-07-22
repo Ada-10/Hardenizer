@@ -39,7 +39,7 @@ func main() {
 	//	if err != nil {
 	//		panic(err)
 	//	}
-	script, err := os.ReadFile("templates/hardening_template.ps1")
+	script, err := os.ReadFile("./templates/hardening_template.ps1")
 	if err != nil {
 		panic(err)
 	}
@@ -49,11 +49,11 @@ func main() {
 	}
 	t := template.Must(template.New("harden_script").Parse(string(script)))
 
-	system_file, err := os.Create("scripts/system.ps1")
+	system_file, err := os.Create("./scripts/system.ps1")
 	if err != nil {
 		panic(err)
 	}
-	user_file, err := os.Create("scripts/user.ps1")
+	user_file, err := os.Create("./scripts/user.ps1")
 	if err != nil {
 		panic(err)
 	}
@@ -69,20 +69,20 @@ func main() {
 	}
 
 	//Template unattend.xml
-	file, err := os.Create("scripts/autounattend.xml")
+	file, err := os.Create("./scripts/autounattend.xml")
 	if err != nil {
 		panic(err)
 	}
-	unattend_template, err := os.ReadFile("templates/autounattend_template.xml")
+	unattend_template, err := os.ReadFile("./templates/autounattend_template.xml")
 	if err != nil {
 		panic(err)
 	}
 
-	system_script, err := os.ReadFile("scripts/system.ps1")
+	system_script, err := os.ReadFile("./scripts/system.ps1")
 	if err != nil {
 		panic(err)
 	}
-	user_script, err := os.ReadFile("scripts/user.ps1")
+	user_script, err := os.ReadFile("./scripts/user.ps1")
 	if err != nil {
 		panic(err)
 	}
