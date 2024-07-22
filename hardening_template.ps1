@@ -1,3 +1,18 @@
+$Tests = @(
+    {{range .}}
+    @{
+        Name       = "{{.TestName}}";
+        Registries = @(
+            @{
+                Path  = "{{.Path}}";
+                Name  = "{{.Name}}";
+                Value = {{.Value}};
+            }
+        )
+    };
+    {{end}}
+)
+
 foreach ($Test in $Tests) {
     foreach ($Registry in $Test.Registries) {
         $KeyExists = (Get-Item $Registry.Path).Propriety -contains $Registry.Key

@@ -23,7 +23,7 @@
 			</ImageInstall>
 			<UserData>
 				<ProductKey>
-					<Key>00000-00000-00000-00000-00000</Key>
+					<Key>{{.ProductKey}}</Key>
 				</ProductKey>
 				<AcceptEula>true</AcceptEula>
 			</UserData>
@@ -574,14 +574,10 @@ $logfile = 'C:\Windows\Temp\remove-features.log';
 </LayoutModificationTemplate>
 		]]></File>
 		<File path="C:\Windows\Setup\Scripts\unattend-01.ps1">
-{{.SystemTestsContent}}
-		</File>
-		<File path="C:\Windows\Setup\Scripts\unattend-02.ps1">
-{{.TestsContent}}
+			{{.SystemScript}}
 		</File>
 		<File path="C:\Windows\Setup\Scripts\unattend-03.ps1">
-Registry::HKU\DefaultUser\…
-{{.UsersTestsContents}}
+			{{.UserScript}}
 		</File>
 	</Extensions>
 </unattend>

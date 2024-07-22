@@ -1,16 +1,23 @@
----
-version: "0.0.1"
-system_tests:
+tests:
   # System Level
-  - test_1:
-    name: "harden_1"
-    reg_paths:
-      registry: "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+  system_tests:
+    - test_name: "Remove Admin"
+      path: "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
       name: "FilterAdministratorToken"
       value: 1
-  - test_2:
-
-user_tests:
-  # Applies to all users
-  - test_1:
-    name: "harden_5"
+  user_tests:
+    # User Level
+    - test_name: "Remove Admin"
+      path: "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+      name: "FilterAdministratorToken"
+      value: 1
+    - test_name: "Test builder"
+      path: "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+      name: "shutdown"
+      value: 0
+  
+  audit_tests:
+  - test_name: "aoa"
+    path: "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
+    name: "FilterAdministratorToken"
+    value: 1

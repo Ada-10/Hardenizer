@@ -1,0 +1,99 @@
+package main
+
+import (
+	"fmt"
+	"os"
+	"text/template"
+
+	"gopkg.in/yaml.v3"
+)
+
+type RegistryInfo struct {
+	TestName string `yaml:"test_name"`
+	Path     string `yaml:"path"`
+	Name     string `yaml:"name"`
+	Value    int    `yaml:"value"`
+}
+type Data struct {
+	Tests struct {
+		System_Test []RegistryInfo `yaml:"system_tests"`
+		User_Test   []RegistryInfo `yaml:"user_tests"`
+	} `yaml:"tests"`
+}
+
+type Unattend_data struct {
+	ProductKey   string
+	SystemScript string
+	UserScript   string
+}
+
+func main() {
+	tests := Data{}
+	// Reading Files
+	yml, readErr := os.ReadFile("./tests.yml")
+	if readErr != nil {
+		fmt.Println("Can't read test file")
+		panic(readErr)
+	}
+	//	system_script, err := os.ReadFile("system.ps1")
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	script, err := os.ReadFile("./hardening_template.ps1")
+	if err != nil {
+		panic(err)
+	}
+	unmarshalErr := yaml.Unmarshal(yml, &tests)
+	if unmarshalErr != nil {
+		panic(unmarshalErr)
+	}
+	t := template.Must(template.New("harden_script").Parse(string(script)))
+
+	system_file, err := os.Create("system.ps1")
+	if err != nil {
+		panic(err)
+	}
+	user_file, err := os.Create("user.ps1")
+	if err != nil {
+		panic(err)
+	}
+
+	userErr := t.Execute(system_file, tests.Tests.System_Test)
+	if userErr != nil {
+		panic(userErr)
+	}
+
+	templateErr := t.Execute(user_file, tests.Tests.User_Test)
+	if templateErr != nil {
+		panic(templateErr)
+	}
+
+	//Template unattend.xml
+	file, err := os.Create("autounattend.xml")
+	if err != nil {
+		panic(err)
+	}
+	unattend_template, err := os.ReadFile("autounattend_template.xml")
+	if err != nil {
+		panic(err)
+	}
+
+	system_script, err := os.ReadFile("system.ps1")
+	if err != nil {
+		panic(err)
+	}
+	user_script, err := os.ReadFile("user.ps1")
+	if err != nil {
+		panic(err)
+	}
+	data := Unattend_data{
+		ProductKey:   "1010011",
+		SystemScript: string(system_script),
+		UserScript:   string(user_script),
+	}
+	t = template.Must(template.New("unattend_template").Parse(string(unattend_template)))
+	finalerr := t.Execute(file, data)
+	if finalerr != nil {
+		fmt.Println(err)
+	}
+}
