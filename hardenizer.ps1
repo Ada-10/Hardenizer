@@ -9,16 +9,16 @@ $Tests = @(
             @{
                 Path             = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\";
                 Key              = "shutdownwithlogon";
-                ExpectedKeyValue = 0
-            }
-        )  
+                ExpectedKeyValue = 0;
+            };
+        );
     };
     @{
         # Detect application installation and request elevated rights with User Account Control (UAC) (ref. 4.2)
         # Rischio: gli impiegati con diritti utente possono installare qualsiasi programma desiderino.
         # Punto debole: l'installazione delle applicazioni è possibile anche da parte dell'utente.
         # Soluzione: disattivazione della richiesta di password per i diritti di amministratore.
-        Name       = "harden_3"
+        Name       = "harden_3";
         Registries = @(
             @{
                 Path             = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\";
