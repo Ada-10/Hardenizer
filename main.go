@@ -40,7 +40,11 @@ func main() {
 	//	if err != nil {
 	//		panic(err)
 	//	}
-	script, err := os.ReadFile("./templates/hardening_template.ps1")
+	system_script, err := os.ReadFile("./templates/system_template.ps1")
+	if err != nil {
+		panic(err)
+	}
+	user_script, err := os.ReadFile("./templates/user_template.ps1")
 	if err != nil {
 		panic(err)
 	}
@@ -48,8 +52,9 @@ func main() {
 	if unmarshalErr != nil {
 		panic(unmarshalErr)
 	}
-	t := template.Must(template.New("harden_script").Parse(string(script)))
+	system_template := template.Must(template.New("harden_script").Parse(string(system_script)))
 
+	user_template := template.Must(template.New("harden_script").Parse(string(user_script)))
 	system_file, err := os.Create("./scripts/system.ps1")
 	if err != nil {
 		panic(err)
@@ -59,14 +64,14 @@ func main() {
 		panic(err)
 	}
 
-	userErr := t.Execute(system_file, yml_data.Tests.System_Test)
+	userErr := user_template.Execute(system_file, yml_data.Tests.System_Test)
 	if userErr != nil {
 		panic(userErr)
 	}
 
-	templateErr := t.Execute(user_file, yml_data.Tests.User_Test)
-	if templateErr != nil {
-		panic(templateErr)
+	systemErr := system_template.Execute(user_file, yml_data.Tests.User_Test)
+	if systemErr != nil {
+		panic(systemErr)
 	}
 
 	//Template unattend.xml
@@ -79,20 +84,20 @@ func main() {
 		panic(err)
 	}
 
-	system_script, err := os.ReadFile("./scripts/system.ps1")
+	sys_script, err := os.ReadFile("./scripts/system.ps1")
 	if err != nil {
 		panic(err)
 	}
-	user_script, err := os.ReadFile("./scripts/user.ps1")
+	u_script, err := os.ReadFile("./scripts/user.ps1")
 	if err != nil {
 		panic(err)
 	}
 	data := Unattend_data{
 		ProductKey:   yml_data.Product_key,
-		SystemScript: string(system_script),
-		UserScript:   string(user_script),
+		SystemScript: string(sys_script),
+		UserScript:   string(u_script),
 	}
-	t = template.Must(template.New("unattend_template").Parse(string(unattend_template)))
+	t := template.Must(template.New("unattend_template").Parse(string(unattend_template)))
 	finalerr := t.Execute(file, data)
 	if finalerr != nil {
 		fmt.Println(err)

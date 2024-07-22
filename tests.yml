@@ -1,4 +1,5 @@
 product_key: "10000-00000-111111" 
+
 tests:
   # System Level
   system_tests:
@@ -16,9 +17,3 @@ tests:
       path: "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
       name: "shutdown"
       value: 0
-  
-  audit_tests:
-  - test_name: "aoa"
-    path: "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System"
-    name: "FilterAdministratorToken"
-    value: 1
