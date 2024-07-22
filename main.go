@@ -15,7 +15,8 @@ type RegistryInfo struct {
 	Value    int    `yaml:"value"`
 }
 type Data struct {
-	Tests struct {
+	Product_key string
+	Tests       struct {
 		System_Test []RegistryInfo `yaml:"system_tests"`
 		User_Test   []RegistryInfo `yaml:"user_tests"`
 	} `yaml:"tests"`
@@ -28,7 +29,7 @@ type Unattend_data struct {
 }
 
 func main() {
-	tests := Data{}
+	yml_data := Data{}
 	// Reading Files
 	yml, readErr := os.ReadFile("./tests.yml")
 	if readErr != nil {
@@ -43,7 +44,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	unmarshalErr := yaml.Unmarshal(yml, &tests)
+	unmarshalErr := yaml.Unmarshal(yml, &yml_data)
 	if unmarshalErr != nil {
 		panic(unmarshalErr)
 	}
@@ -58,12 +59,12 @@ func main() {
 		panic(err)
 	}
 
-	userErr := t.Execute(system_file, tests.Tests.System_Test)
+	userErr := t.Execute(system_file, yml_data.Tests.System_Test)
 	if userErr != nil {
 		panic(userErr)
 	}
 
-	templateErr := t.Execute(user_file, tests.Tests.User_Test)
+	templateErr := t.Execute(user_file, yml_data.Tests.User_Test)
 	if templateErr != nil {
 		panic(templateErr)
 	}
@@ -87,7 +88,7 @@ func main() {
 		panic(err)
 	}
 	data := Unattend_data{
-		ProductKey:   "1010011",
+		ProductKey:   yml_data.Product_key,
 		SystemScript: string(system_script),
 		UserScript:   string(user_script),
 	}
